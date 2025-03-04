@@ -1,4 +1,5 @@
 accelerate==0.33.0
+boto3=1.37.5
 diffusers==0.30.0
 transformers==4.41.2
 PyQt5

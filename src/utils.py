@@ -1,6 +1,69 @@
 from os import path, listdir
 import platform
 from typing import List
+import boto3
+import io
+import uuid
+from datetime import datetime
+from typing import List, Tuple
+from PIL import Image
+
+def upload_images_to_s3(
+    images: List[Tuple[Image.Image, str]], 
+    bucket_name: str,
+    folder_prefix: str = "uploads",
+    region: str = None
+) -> List[str]:
+    """
+    Upload a list of PIL images to an S3 bucket and return their URLs.
+    
+    Args:
+        images: List of tuples containing (PIL_Image, format_string)
+                Format string examples: 'JPEG', 'PNG', etc.
+        bucket_name: Name of the S3 bucket
+        folder_prefix: Optional folder path within bucket
+        region: AWS region (if None, will use default from boto3 config)
+        
+    Returns:
+        List of URLs to the uploaded images
+    """
+    s3_client = boto3.client('s3', region_name=region)
+    uploaded_urls = []
+    
+    timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+    
+    for i, (image, format_str) in enumerate(images):
+        # Generate unique key
+        unique_id = str(uuid.uuid4())[:8]
+        filename = f"{timestamp}-{i}-{unique_id}.{format_str.lower()}"
+        object_key = f"{folder_prefix}/{filename}" if folder_prefix else filename
+        
+        # Convert PIL image to bytes
+        img_byte_arr = io.BytesIO()
+        image.save(img_byte_arr, format=format_str)
+        img_byte_arr.seek(0)
+        
+        # Upload to S3
+        s3_client.upload_fileobj(
+            img_byte_arr,
+            bucket_name,
+            object_key,
+            ExtraArgs={
+                'ContentType': f'image/{format_str.lower()}',
+                'ACL': 'public-read'  # Makes the object publicly readable
+            }
+        )
+        
+        # Generate the URL
+        if region:
+            url = f"https://{bucket_name}.s3.{region}.amazonaws.com/{object_key}"
+        else:
+            # If no region specified, use region-less URL format
+            url = f"https://{bucket_name}.s3.amazonaws.com/{object_key}"
+            
+        uploaded_urls.append(url)
+    
+    return uploaded_urls
 
 
 def show_system_info():

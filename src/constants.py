@@ -23,3 +23,6 @@ CONTROLNET_DIRECTORY = "controlnet_models"
 MODELS_DIRECTORY = "models"
 GGUF_THREADS = environ.get("GGUF_THREADS", cpus)
 TAEF1_MODEL_OPENVINO = "rupeshs/taef1-openvino"
+S3_BUCKET_NAME = environ.get("S3_BUCKET_NAME", None)
+S3_FOLDER_PREFIX = environ.get("S3_FOLDER_PREFIX", None)
+S3_REGION = environ.get("S3_REGION", None)

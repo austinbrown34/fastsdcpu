@@ -12,5 +12,6 @@ class StableDiffusionResponse(BaseModel):
         latency (float): Latency in seconds
     """
 
+    image_urls: List[str]
     images: List[str]
     latency: float
